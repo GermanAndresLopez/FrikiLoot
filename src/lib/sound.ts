@@ -14,16 +14,28 @@ interface Note {
   gain?: number;
 }
 
+/**
+ * Un único AudioContext reutilizable. Crear uno nuevo en cada clic es costoso
+ * (decenas de ms) y causa jank; con el singleton el feedback es instantáneo.
+ */
+let sharedCtx: AudioContext | null = null;
+
+function getCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  const Ctx =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx) return null;
+  if (!sharedCtx) sharedCtx = new Ctx();
+  if (sharedCtx.state === "suspended") void sharedCtx.resume();
+  return sharedCtx;
+}
+
 function play(notes: Note[]) {
   try {
-    const Ctx =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!Ctx) return;
-
-    const ctx = new Ctx();
+    const ctx = getCtx();
+    if (!ctx) return;
     const now = ctx.currentTime;
-    let end = 0;
 
     for (const n of notes) {
       const dur = n.dur ?? 0.28;
@@ -39,10 +51,12 @@ function play(notes: Note[]) {
       gain.connect(ctx.destination);
       osc.start(now + n.at);
       osc.stop(now + n.at + dur + 0.02);
-      end = Math.max(end, n.at + dur);
+      // El oscilador se desconecta solo al terminar (libera memoria).
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
     }
-
-    setTimeout(() => void ctx.close(), (end + 0.1) * 1000 + 100);
   } catch {
     // El feedback de audio nunca debe romper la UX.
   }

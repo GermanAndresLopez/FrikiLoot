@@ -9,6 +9,7 @@ import { logCartEventAction } from "@/actions/metrics";
 import { Button } from "@/components/ui/Button";
 import { EmojiBurst } from "@/components/EmojiBurst";
 import { playSuccess } from "@/lib/sound";
+import { toast } from "@/store/toastStore";
 import { cn } from "@/lib/utils";
 
 export function AddToCartPanel({ product }: { product: ProductDetail }) {
@@ -53,9 +54,10 @@ export function AddToCartPanel({ product }: { product: ProductDetail }) {
       eventType: "add",
       sessionId: getSessionId(),
     });
-    // Feedback: burst de emojis + chime de éxito
+    // Feedback: burst de emojis + chime + toast verde
     setBurst((b) => b + 1);
     playSuccess();
+    toast.success(`${product.name} agregado al carrito`);
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   }

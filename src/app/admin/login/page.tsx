@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { LoginForm } from "@/features/admin/LoginForm";
@@ -25,6 +26,13 @@ export default function AdminLoginPage() {
         <Suspense>
           <LoginForm />
         </Suspense>
+
+        <Link
+          href="/"
+          className="mt-6 flex items-center justify-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-lg py-2"
+        >
+          <span aria-hidden>←</span> Volver al inicio
+        </Link>
       </div>
     </main>
   );

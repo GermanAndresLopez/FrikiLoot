@@ -14,11 +14,25 @@ export interface OrderRow {
   created_at: string;
 }
 
+const SELECT = "id, items, total, customer_name, customer_phone, status, stock_applied, created_at";
+
 export const orderRepository = {
   async listRecent(db: DB, limit = 20): Promise<OrderRow[]> {
     const { data, error } = await db
       .from("whatsapp_orders")
-      .select("id, items, total, customer_name, customer_phone, status, stock_applied, created_at")
+      .select(SELECT)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as unknown as OrderRow[];
+  },
+
+  /** Solo pedidos por confirmar (los resueltos no se acumulan en Alertas). */
+  async listPending(db: DB, limit = 50): Promise<OrderRow[]> {
+    const { data, error } = await db
+      .from("whatsapp_orders")
+      .select(SELECT)
+      .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) throw error;

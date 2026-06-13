@@ -13,7 +13,40 @@ export interface DashboardSummary {
   visitsMonth: number;
 }
 
+export interface SalesSummary {
+  salesCount: number;
+  revenue: number;
+  salesMonth: number;
+  revenueMonth: number;
+}
+
 export const metricsRepository = {
+  /** Ventas e ingresos a partir de pedidos confirmados (status = 'completed'). */
+  async salesSummary(db: DB): Promise<SalesSummary> {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { data, error } = await db
+      .from("whatsapp_orders")
+      .select("total, created_at")
+      .eq("status", "completed");
+    if (error) throw error;
+
+    const rows = data ?? [];
+    let revenue = 0;
+    let revenueMonth = 0;
+    let salesMonth = 0;
+    for (const r of rows) {
+      revenue += r.total;
+      if (new Date(r.created_at) >= startOfMonth) {
+        revenueMonth += r.total;
+        salesMonth += 1;
+      }
+    }
+    return { salesCount: rows.length, revenue, salesMonth, revenueMonth };
+  },
+
   async summary(db: DB, lowStockThreshold: number): Promise<DashboardSummary> {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);

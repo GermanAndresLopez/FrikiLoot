@@ -31,8 +31,8 @@ export function EmojiBurst({ trigger, big = false }: { trigger: number; big?: bo
   useEffect(() => {
     if (!trigger) return;
     const palette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
-    const count = big ? 14 : 7;
-    const spread = big ? 200 : 120;
+    const count = big ? 9 : 5;
+    const spread = big ? 190 : 120;
     const lift = big ? 110 : 70;
     const particles: Particle[] = Array.from({ length: count }, (_, i) => ({
       id: i,

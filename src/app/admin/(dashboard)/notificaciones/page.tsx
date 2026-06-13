@@ -33,12 +33,11 @@ export default async function AlertasPage() {
   const [notifications, inventory, orders] = await Promise.all([
     notificationRepository.list(db),
     adminProductRepository.listInventory(db),
-    orderRepository.listRecent(db, 20),
+    orderRepository.listPending(db, 50),
   ]);
 
   const outOfStock = inventory.filter((i) => i.stock === 0);
   const lowStock = inventory.filter((i) => i.stock > 0 && i.stock <= i.low_stock_threshold);
-  const pendingOrders = orders.filter((o) => o.status === "pending").length;
   const hasUnread = notifications.some((n) => !n.is_read);
 
   return (
@@ -69,15 +68,15 @@ export default async function AlertasPage() {
         </div>
       </section>
 
-      {/* ───────── Pedidos por WhatsApp ───────── */}
+      {/* ───────── Pedidos por confirmar ───────── */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Pedidos</h2>
-          {pendingOrders > 0 && <Badge tone="warning">{pendingOrders} por confirmar</Badge>}
+          <h2 className="text-lg font-bold">Pedidos por confirmar</h2>
+          {orders.length > 0 && <Badge tone="warning">{orders.length}</Badge>}
         </div>
         {orders.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted">
-            Aún no hay pedidos.
+            No hay pedidos pendientes. Los confirmados salen de esta lista. ✓
           </p>
         ) : (
           <ul className="space-y-2.5">
