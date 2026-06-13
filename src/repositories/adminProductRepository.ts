@@ -18,7 +18,11 @@ export const adminProductRepository = {
       .select("*, category:categories(id, name), product_images(url, is_primary), product_sizes(stock)")
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []).map((row) => {
+    // El tipo `Database` (escrito a mano) no declara Relationships, así que los
+    // selects con joins se infieren como `never`. El dato en runtime es correcto;
+    // casteamos a Record para acceder a las relaciones embebidas.
+    const rows = (data ?? []) as unknown as Record<string, unknown>[];
+    return rows.map((row) => {
       const images = (row.product_images as { url: string; is_primary: boolean }[]) ?? [];
       const sizes = (row.product_sizes as { stock: number }[]) ?? [];
       return {
@@ -41,10 +45,11 @@ export const adminProductRepository = {
       .maybeSingle();
     if (error) throw error;
     if (!data) return null;
+    const row = data as unknown as Record<string, unknown>;
     return {
-      ...(data as unknown as Product),
-      images: ((data.product_images as ProductImage[]) ?? []).sort((a, b) => a.position - b.position),
-      sizes: (data.product_sizes as ProductSize[]) ?? [],
+      ...(row as unknown as Product),
+      images: ((row.product_images as ProductImage[]) ?? []).sort((a, b) => a.position - b.position),
+      sizes: (row.product_sizes as ProductSize[]) ?? [],
     };
   },
 

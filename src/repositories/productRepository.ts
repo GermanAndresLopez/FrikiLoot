@@ -97,17 +97,22 @@ export const productRepository = {
     if (error) throw error;
     if (!data) return null;
 
-    const images = ((data.product_images as ProductDetail["images"]) ?? []).sort(
+    // Database (hecho a mano) no declara Relationships → el join se infiere como
+    // `never`. Casteamos a Record para leer las relaciones embebidas.
+    const row = data as unknown as Record<string, unknown>;
+    const product = row as unknown as Product;
+
+    const images = ((row.product_images as ProductDetail["images"]) ?? []).sort(
       (a, b) => a.position - b.position
     );
-    const sizes = ((data.product_sizes as ProductDetail["sizes"]) ?? []).slice();
-    const effective = data.has_sizes
+    const sizes = ((row.product_sizes as ProductDetail["sizes"]) ?? []).slice();
+    const effective = product.has_sizes
       ? sizes.reduce((acc, s) => acc + s.stock, 0)
-      : data.stock;
+      : product.stock;
 
     return {
-      ...(data as unknown as Product),
-      category: (data.category as ProductDetail["category"]) ?? null,
+      ...product,
+      category: (row.category as ProductDetail["category"]) ?? null,
       images,
       sizes,
       effective_stock: effective,
