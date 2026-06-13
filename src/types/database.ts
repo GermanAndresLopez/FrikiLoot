@@ -5,6 +5,9 @@
  *   supabase gen types typescript --project-id <id> > src/types/database.ts
  *
  * Convención: en Insert, los campos con DEFAULT o NULLABLE son opcionales.
+ * `Relationships: []` es obligatorio para que cada tabla/vista satisfaga el
+ * contrato `GenericTable`/`GenericView` de @supabase/supabase-js (sin él, el
+ * cliente tipado degrada insert/update/select a `never`).
  */
 
 export type NotificationType =
@@ -49,6 +52,7 @@ export interface Database {
           display_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+        Relationships: [];
       };
       products: {
         Row: {
@@ -78,11 +82,13 @@ export interface Database {
           is_active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
+        Relationships: [];
       };
       product_sizes: {
         Row: { id: string; product_id: string; size: string; stock: number };
         Insert: { id?: string; product_id: string; size: string; stock?: number };
         Update: Partial<Database["public"]["Tables"]["product_sizes"]["Insert"]>;
+        Relationships: [];
       };
       product_images: {
         Row: {
@@ -102,11 +108,13 @@ export interface Database {
           is_primary?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["product_images"]["Insert"]>;
+        Relationships: [];
       };
       product_views: {
         Row: { id: string; product_id: string; session_id: string | null; created_at: string };
         Insert: { id?: string; product_id: string; session_id?: string | null; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["product_views"]["Insert"]>;
+        Relationships: [];
       };
       cart_events: {
         Row: {
@@ -128,6 +136,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["cart_events"]["Insert"]>;
+        Relationships: [];
       };
       whatsapp_orders: {
         Row: {
@@ -149,6 +158,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["whatsapp_orders"]["Insert"]>;
+        Relationships: [];
       };
       notifications: {
         Row: {
@@ -170,11 +180,13 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+        Relationships: [];
       };
       admins: {
         Row: { id: string; email: string; created_at: string };
         Insert: { id: string; email: string; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["admins"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: {
@@ -187,16 +199,21 @@ export interface Database {
           cart_adds: number;
           whatsapp_sends: number;
         };
+        Relationships: [];
       };
       daily_traffic: {
         Row: { day: string; views: number; unique_sessions: number };
+        Relationships: [];
       };
       conversion_funnel: {
         Row: { visits: number; product_views: number; cart_adds: number; whatsapp_sends: number };
+        Relationships: [];
       };
     };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
     };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }

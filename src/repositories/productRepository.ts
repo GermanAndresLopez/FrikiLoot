@@ -31,6 +31,15 @@ function toCard(row: Record<string, unknown>): ProductCard {
   };
 }
 
+/**
+ * Mapea filas de un select con joins a ProductCard. El select embebido se
+ * infiere como tipo de error/never (Database no declara Relationships), por eso
+ * casteamos a Record antes de mapear; el dato en runtime es correcto.
+ */
+function rowsToCards(data: unknown): ProductCard[] {
+  return ((data ?? []) as Record<string, unknown>[]).map(toCard);
+}
+
 export const productRepository = {
   /** Catálogo paginado con filtros, búsqueda y orden. Devuelve total para paginar. */
   async listCatalog(db: DB, filters: CatalogFilters): Promise<{ items: ProductCard[]; total: number }> {
@@ -73,7 +82,7 @@ export const productRepository = {
 
     const { data, error, count } = await ordered.range(from, from + PAGE_SIZE - 1);
     if (error) throw error;
-    return { items: (data ?? []).map(toCard), total: count ?? 0 };
+    return { items: rowsToCards(data), total: count ?? 0 };
   },
 
   async listFeatured(db: DB, limit = 8): Promise<ProductCard[]> {
@@ -85,7 +94,7 @@ export const productRepository = {
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) throw error;
-    return (data ?? []).map(toCard);
+    return rowsToCards(data);
   },
 
   async getDetailBySlug(db: DB, slug: string): Promise<ProductDetail | null> {
@@ -129,7 +138,7 @@ export const productRepository = {
       .neq("id", excludeId)
       .limit(limit);
     if (error) throw error;
-    return (data ?? []).map(toCard);
+    return rowsToCards(data);
   },
 
   /** Todos los slugs activos — para sitemap y generación estática. */
