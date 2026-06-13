@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* ── Tema FrikiLoot — modo oscuro por defecto, estética anime ───────── */
+@theme {
+  --color-bg: #0a0a0f;
+  --color-surface: #13131c;
+  --color-surface-2: #1c1c2a;
+  --color-border: #2a2a3d;
+
+  --color-foreground: #ededf2;
+  --color-muted: #9a9ab0;
+
+  /* Acentos anime: magenta/cian neón */
+  --color-primary: #ff3d7f;
+  --color-primary-hover: #ff5c93;
+  --color-accent: #22d3ee;
+  --color-accent-2: #a855f7;
+
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f43f5e;
+
+  --radius-card: 1rem;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  /* Padding inferior para no chocar con la BottomNav en móvil */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scrollbar sutil */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+
+/* Utilidad: gradiente de marca */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, var(--color-primary), var(--color-accent-2));
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Oculta scrollbar manteniendo scroll (carruseles) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

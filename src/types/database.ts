@@ -1,0 +1,202 @@
+/**
+ * Tipos del esquema de base de datos.
+ * Espejo manual de las migraciones en `supabase/migrations`.
+ * Puede regenerarse con:
+ *   supabase gen types typescript --project-id <id> > src/types/database.ts
+ *
+ * Convención: en Insert, los campos con DEFAULT o NULLABLE son opcionales.
+ */
+
+export type NotificationType =
+  | "agotado"
+  | "stock_bajo"
+  | "producto_popular"
+  | "incremento_visitas"
+  | "nuevo_pedido";
+
+export type CartEventType = "add" | "remove" | "update";
+
+export interface OrderItemSnapshot {
+  product_id: string;
+  name: string;
+  size: string | null;
+  quantity: number;
+  unit_price: number;
+}
+
+export interface Database {
+  public: {
+    Tables: {
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          image_url: string | null;
+          is_active: boolean;
+          display_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          image_url?: string | null;
+          is_active?: boolean;
+          display_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+      };
+      products: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          category_id: string | null;
+          price: number;
+          stock: number;
+          has_sizes: boolean;
+          is_featured: boolean;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          category_id?: string | null;
+          price: number;
+          stock?: number;
+          has_sizes?: boolean;
+          is_featured?: boolean;
+          is_active?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
+      };
+      product_sizes: {
+        Row: { id: string; product_id: string; size: string; stock: number };
+        Insert: { id?: string; product_id: string; size: string; stock?: number };
+        Update: Partial<Database["public"]["Tables"]["product_sizes"]["Insert"]>;
+      };
+      product_images: {
+        Row: {
+          id: string;
+          product_id: string;
+          url: string;
+          alt: string | null;
+          position: number;
+          is_primary: boolean;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          url: string;
+          alt?: string | null;
+          position?: number;
+          is_primary?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["product_images"]["Insert"]>;
+      };
+      product_views: {
+        Row: { id: string; product_id: string; session_id: string | null; created_at: string };
+        Insert: { id?: string; product_id: string; session_id?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["product_views"]["Insert"]>;
+      };
+      cart_events: {
+        Row: {
+          id: string;
+          product_id: string;
+          size: string | null;
+          quantity: number;
+          event_type: CartEventType;
+          session_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          size?: string | null;
+          quantity?: number;
+          event_type?: CartEventType;
+          session_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["cart_events"]["Insert"]>;
+      };
+      whatsapp_orders: {
+        Row: {
+          id: string;
+          items: OrderItemSnapshot[];
+          total: number;
+          customer_name: string | null;
+          customer_phone: string | null;
+          session_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          items: OrderItemSnapshot[];
+          total: number;
+          customer_name?: string | null;
+          customer_phone?: string | null;
+          session_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["whatsapp_orders"]["Insert"]>;
+      };
+      notifications: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          type: NotificationType;
+          is_read: boolean;
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          type: NotificationType;
+          is_read?: boolean;
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notifications"]["Insert"]>;
+      };
+      admins: {
+        Row: { id: string; email: string; created_at: string };
+        Insert: { id: string; email: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["admins"]["Insert"]>;
+      };
+    };
+    Views: {
+      product_metrics: {
+        Row: {
+          product_id: string;
+          name: string;
+          slug: string;
+          views: number;
+          cart_adds: number;
+          whatsapp_sends: number;
+        };
+      };
+      daily_traffic: {
+        Row: { day: string; views: number; unique_sessions: number };
+      };
+      conversion_funnel: {
+        Row: { visits: number; product_views: number; cart_adds: number; whatsapp_sends: number };
+      };
+    };
+    Functions: {
+      is_admin: { Args: Record<string, never>; Returns: boolean };
+    };
+  };
+}
