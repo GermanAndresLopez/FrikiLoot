@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import type { Category, Product, ProductSize } from "@/types/domain";
 import { saveProductAction, type ProductActionState } from "@/actions/products";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea, Select } from "@/components/ui/Input";
+import { toast } from "@/store/toastStore";
 import { SIZES } from "@/lib/constants";
 import { slugify } from "@/lib/utils";
 
@@ -44,6 +45,15 @@ export function ProductForm({
     },
     {}
   );
+
+  // Confirmación (toast) al guardar/crear con éxito.
+  const handled = useRef<ProductActionState | null>(null);
+  useEffect(() => {
+    if (state === handled.current) return;
+    handled.current = state;
+    if (state.success) toast.success(editing ? "Producto actualizado" : "Producto creado");
+    else if (state.error && !state.fieldErrors) toast.error(state.error);
+  }, [state, editing]);
 
   const sizeStock = (s: string) => sizes.find((x) => x.size === s)?.stock ?? "";
 

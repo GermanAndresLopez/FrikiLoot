@@ -12,7 +12,7 @@ export const categoryRepository = {
       .from("categories")
       .select("*")
       .eq("is_active", true)
-      .order("display_order", { ascending: true });
+      .order("name", { ascending: true });
     if (error) throw error;
     return data ?? [];
   },
@@ -21,7 +21,7 @@ export const categoryRepository = {
     const { data, error } = await db
       .from("categories")
       .select("*")
-      .order("display_order", { ascending: true });
+      .order("name", { ascending: true });
     if (error) throw error;
     return data ?? [];
   },

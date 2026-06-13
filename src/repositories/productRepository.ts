@@ -75,9 +75,8 @@ export const productRepository = {
         : filters.sort === "precio_desc"
           ? filter.order("price", { ascending: false })
           : filters.sort === "populares"
-            ? // Aproximación pública: destacados primero, luego recientes.
-              // (product_metrics solo es legible por admin vía RLS.)
-              filter.order("is_featured", { ascending: false }).order("created_at", { ascending: false })
+            ? // Popularidad real: vistas + adds + compras (columna pública).
+              filter.order("popularity_score", { ascending: false }).order("created_at", { ascending: false })
             : filter.order("created_at", { ascending: false });
 
     const { data, error, count } = await ordered.range(from, from + PAGE_SIZE - 1);
@@ -91,6 +90,8 @@ export const productRepository = {
       .select(CARD_SELECT)
       .eq("is_active", true)
       .eq("is_featured", true)
+      // Auto-orden por popularidad (vistas + adds + compras); admin elige cuáles destacar.
+      .order("popularity_score", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) throw error;

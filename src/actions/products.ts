@@ -80,6 +80,16 @@ export async function deleteProductAction(formData: FormData): Promise<void> {
   revalidatePath("/productos");
 }
 
+/** Alterna el estado "destacado" de un producto (toggle rápido desde la lista). */
+export async function toggleFeaturedAction(productId: string, value: boolean): Promise<void> {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("products").update({ is_featured: value }).eq("id", productId);
+  if (error) throw error;
+  revalidatePath("/admin/productos");
+  revalidatePath("/");
+  revalidatePath("/productos");
+}
+
 /** Sube una imagen al bucket y la asocia al producto. */
 export async function uploadProductImageAction(formData: FormData): Promise<{ error?: string }> {
   const { supabase } = await requireAdmin();

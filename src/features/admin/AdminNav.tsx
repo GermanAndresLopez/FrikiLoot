@@ -12,10 +12,10 @@ type IconProps = React.SVGProps<SVGSVGElement>;
 
 const links = [
   { href: "/admin", label: "Dashboard", exact: true, icon: DashboardIcon },
-  { href: "/admin/productos", label: "Productos", icon: BoxIcon },
-  { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
-  { href: "/admin/inventario", label: "Inventario", icon: StackIcon },
   { href: "/admin/notificaciones", label: "Alertas", icon: BellIcon },
+  { href: "/admin/productos", label: "Productos", icon: BoxIcon },
+  { href: "/admin/inventario", label: "Inventario", icon: StackIcon },
+  { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
 ];
 
 export function AdminNav({ email }: { email: string }) {

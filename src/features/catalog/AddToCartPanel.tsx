@@ -7,6 +7,8 @@ import { useCartStore } from "@/store/cartStore";
 import { getSessionId } from "@/lib/session";
 import { logCartEventAction } from "@/actions/metrics";
 import { Button } from "@/components/ui/Button";
+import { EmojiBurst } from "@/components/EmojiBurst";
+import { playSuccess } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 export function AddToCartPanel({ product }: { product: ProductDetail }) {
@@ -15,6 +17,7 @@ export function AddToCartPanel({ product }: { product: ProductDetail }) {
   const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [burst, setBurst] = useState(0);
 
   const sizesWithStock = product.sizes.filter((s) => s.stock > 0);
   const needsSize = product.has_sizes;
@@ -50,6 +53,9 @@ export function AddToCartPanel({ product }: { product: ProductDetail }) {
       eventType: "add",
       sessionId: getSessionId(),
     });
+    // Feedback: burst de emojis + chime de éxito
+    setBurst((b) => b + 1);
+    playSuccess();
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   }
@@ -120,9 +126,12 @@ export function AddToCartPanel({ product }: { product: ProductDetail }) {
       </div>
 
       <div className="flex gap-2">
-        <Button className="flex-1" disabled={!canAdd} onClick={handleAdd}>
-          {added ? "✓ Agregado" : "Agregar al carrito"}
-        </Button>
+        <div className="relative flex-1">
+          <EmojiBurst trigger={burst} />
+          <Button className="w-full" disabled={!canAdd} onClick={handleAdd}>
+            {added ? "✓ Agregado" : "Agregar al carrito"}
+          </Button>
+        </div>
         <Button variant="outline" onClick={() => router.push("/carrito")}>
           Ver carrito
         </Button>

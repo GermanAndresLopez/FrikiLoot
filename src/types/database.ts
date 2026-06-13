@@ -66,6 +66,8 @@ export interface Database {
           has_sizes: boolean;
           is_featured: boolean;
           is_active: boolean;
+          popularity_score: number;
+          low_stock_threshold: number;
           created_at: string;
           updated_at: string;
         };
@@ -80,6 +82,8 @@ export interface Database {
           has_sizes?: boolean;
           is_featured?: boolean;
           is_active?: boolean;
+          popularity_score?: number;
+          low_stock_threshold?: number;
         };
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
         Relationships: [];
@@ -212,6 +216,7 @@ export interface Database {
     };
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      bump_popularity: { Args: { p_id: string; p_amount: number }; Returns: undefined };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

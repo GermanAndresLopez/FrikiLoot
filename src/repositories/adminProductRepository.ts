@@ -136,12 +136,77 @@ export const adminProductRepository = {
       .eq("size", size)
       .single();
     if (readErr) throw readErr;
-    const next = Math.max(0, row.stock + delta);
+    await this.setSizeStock(db, productId, size, row.stock + delta);
+  },
+
+  /** Fija el stock exacto de un producto sin tallas. */
+  async setStock(db: DB, productId: string, value: number): Promise<void> {
+    const next = Math.max(0, Math.round(value));
+    const { error } = await db.from("products").update({ stock: next }).eq("id", productId);
+    if (error) throw error;
+  },
+
+  /** Fija el stock exacto de una talla y re-sincroniza el total del producto. */
+  async setSizeStock(db: DB, productId: string, size: string, value: number): Promise<void> {
+    const next = Math.max(0, Math.round(value));
+    const { data: row, error: readErr } = await db
+      .from("product_sizes")
+      .select("id")
+      .eq("product_id", productId)
+      .eq("size", size)
+      .single();
+    if (readErr) throw readErr;
     await db.from("product_sizes").update({ stock: next }).eq("id", row.id);
 
-    // Re-sincroniza products.stock = suma de tallas (dispara notificaciones).
+    // products.stock = suma de tallas (dispara notificaciones de stock).
     const { data: all } = await db.from("product_sizes").select("stock").eq("product_id", productId);
     const total = (all ?? []).reduce((a, s) => a + s.stock, 0);
     await db.from("products").update({ stock: total }).eq("id", productId);
   },
+
+  /** Fija el umbral de stock bajo de un producto. */
+  async setThreshold(db: DB, productId: string, value: number): Promise<void> {
+    const next = Math.max(0, Math.round(value));
+    const { error } = await db.from("products").update({ low_stock_threshold: next }).eq("id", productId);
+    if (error) throw error;
+  },
+
+  /** Lista para inventario: productos con sus tallas. */
+  async listInventory(db: DB): Promise<InventoryItem[]> {
+    const { data, error } = await db
+      .from("products")
+      .select("*, category:categories(name), product_images(url, is_primary), product_sizes(id, size, stock)")
+      .order("name", { ascending: true });
+    if (error) throw error;
+
+    const rows = (data ?? []) as unknown as Record<string, unknown>[];
+    return rows.map((row) => {
+      const product = row as unknown as Product;
+      const images = (row.product_images as { url: string; is_primary: boolean }[]) ?? [];
+      const sizes = ((row.product_sizes as ProductSize[]) ?? []).slice().sort((a, b) =>
+        a.size.localeCompare(b.size)
+      );
+      return {
+        id: product.id,
+        name: product.name,
+        primary_image: (images.find((i) => i.is_primary) ?? images[0])?.url ?? null,
+        category: (row.category as { name: string } | null)?.name ?? null,
+        stock: product.stock,
+        has_sizes: product.has_sizes,
+        low_stock_threshold: product.low_stock_threshold,
+        sizes,
+      };
+    });
+  },
 };
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  primary_image: string | null;
+  category: string | null;
+  stock: number;
+  has_sizes: boolean;
+  low_stock_threshold: number;
+  sizes: ProductSize[];
+}

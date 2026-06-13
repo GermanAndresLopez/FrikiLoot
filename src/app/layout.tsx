@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { env } from "@/lib/env";
 import { Analytics } from "@/components/Analytics";
+import { Toaster } from "@/components/Toaster";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={inter.variable}>
       <body className="min-h-dvh antialiased">
         {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>

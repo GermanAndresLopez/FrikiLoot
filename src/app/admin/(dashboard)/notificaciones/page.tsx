@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { notificationRepository } from "@/repositories/notificationRepository";
+import { adminProductRepository } from "@/repositories/adminProductRepository";
 import { formatRelative } from "@/lib/format";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -24,52 +26,134 @@ const labelByType: Record<NotificationType, string> = {
   nuevo_pedido: "Pedido",
 };
 
-export default async function NotificacionesPage() {
+export default async function AlertasPage() {
   const db = await createClient();
-  const notifications = await notificationRepository.list(db);
+  const [notifications, inventory] = await Promise.all([
+    notificationRepository.list(db),
+    adminProductRepository.listInventory(db),
+  ]);
+
+  const outOfStock = inventory.filter((i) => i.stock === 0);
+  const lowStock = inventory.filter((i) => i.stock > 0 && i.stock <= i.low_stock_threshold);
   const hasUnread = notifications.some((n) => !n.is_read);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Notificaciones</h1>
-        {hasUnread && (
-          <form action={markAllReadAction}>
-            <Button size="sm" variant="secondary">Marcar todo leído</Button>
-          </form>
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Centro de</p>
+        <h1 className="text-2xl font-bold sm:text-3xl">Alertas</h1>
+        <p className="mt-1 text-sm text-muted">Estado de stock en vivo y notificaciones de la tienda.</p>
+      </header>
+
+      {/* ───────── Alertas de stock en vivo ───────── */}
+      <section className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <StockAlertCard
+            title="Agotados"
+            tone="danger"
+            items={outOfStock.map((i) => ({ id: i.id, name: i.name, detail: "0 uds" }))}
+          />
+          <StockAlertCard
+            title="Stock bajo"
+            tone="warning"
+            items={lowStock.map((i) => ({
+              id: i.id,
+              name: i.name,
+              detail: `${i.stock} ≤ ${i.low_stock_threshold}`,
+            }))}
+          />
+        </div>
+      </section>
+
+      {/* ───────── Notificaciones ───────── */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Notificaciones</h2>
+          {hasUnread && (
+            <form action={markAllReadAction}>
+              <Button size="sm" variant="secondary">Marcar todo leído</Button>
+            </form>
+          )}
+        </div>
+
+        <ul className="space-y-2">
+          {notifications.length === 0 && (
+            <li className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted">
+              Sin notificaciones.
+            </li>
+          )}
+          {notifications.map((n) => (
+            <li
+              key={n.id}
+              className={`rounded-2xl border p-3 transition-colors ${
+                n.is_read ? "border-border bg-surface" : "border-primary/40 bg-surface-2"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-medium">
+                    <Badge tone={toneByType[n.type]}>{labelByType[n.type]}</Badge>
+                    <span className="truncate">{n.title}</span>
+                  </p>
+                  {n.description && <p className="mt-0.5 text-sm text-muted">{n.description}</p>}
+                  <p className="mt-1 text-xs text-muted">{formatRelative(n.created_at)}</p>
+                </div>
+                {!n.is_read && (
+                  <form action={markNotificationReadAction}>
+                    <input type="hidden" name="id" value={n.id} />
+                    <Button size="sm" variant="ghost" type="submit">
+                      Leído
+                    </Button>
+                  </form>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+function StockAlertCard({
+  title,
+  tone,
+  items,
+}: {
+  title: string;
+  tone: "danger" | "warning";
+  items: { id: string; name: string; detail: string }[];
+}) {
+  return (
+    <div
+      className={`rounded-2xl border bg-surface p-4 ${tone === "danger" ? "border-danger/40" : "border-warning/40"}`}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <Badge tone={tone}>{items.length}</Badge>
+          {title}
+        </h3>
+        {items.length > 0 && (
+          <Link href="/admin/inventario" className="text-xs text-primary hover:opacity-80">
+            Gestionar →
+          </Link>
         )}
       </div>
-
-      <ul className="space-y-2">
-        {notifications.length === 0 && <li className="text-sm text-muted">Sin notificaciones.</li>}
-        {notifications.map((n) => (
-          <li
-            key={n.id}
-            className={`rounded-xl border p-3 ${
-              n.is_read ? "border-border bg-surface" : "border-primary/40 bg-surface-2"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="flex items-center gap-2 font-medium">
-                  <Badge tone={toneByType[n.type]}>{labelByType[n.type]}</Badge>
-                  <span className="truncate">{n.title}</span>
-                </p>
-                {n.description && <p className="mt-0.5 text-sm text-muted">{n.description}</p>}
-                <p className="mt-1 text-xs text-muted">{formatRelative(n.created_at)}</p>
-              </div>
-              {!n.is_read && (
-                <form action={markNotificationReadAction}>
-                  <input type="hidden" name="id" value={n.id} />
-                  <Button size="sm" variant="ghost" type="submit">
-                    Leído
-                  </Button>
-                </form>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted">Todo en orden ✓</p>
+      ) : (
+        <ul className="space-y-1">
+          {items.slice(0, 6).map((i) => (
+            <li key={i.id} className="flex items-center justify-between gap-2 text-sm">
+              <Link href="/admin/inventario" className="truncate hover:text-primary">
+                {i.name}
+              </Link>
+              <span className="shrink-0 text-xs text-muted">{i.detail}</span>
+            </li>
+          ))}
+          {items.length > 6 && <li className="text-xs text-muted">+{items.length - 6} más…</li>}
+        </ul>
+      )}
     </div>
   );
 }
