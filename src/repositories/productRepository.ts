@@ -37,13 +37,14 @@ export const productRepository = {
     const page = Math.max(1, filters.page ?? 1);
     const from = (page - 1) * PAGE_SIZE;
 
-    let query = db
+    // Filtros (estos métodos devuelven FilterBuilder, se pueden reasignar).
+    let filter = db
       .from("products")
       .select(CARD_SELECT, { count: "exact" })
       .eq("is_active", true);
 
     if (filters.q) {
-      query = query.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%`);
+      filter = filter.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%`);
     }
     if (filters.category) {
       const { data: cat } = await db
@@ -51,31 +52,26 @@ export const productRepository = {
         .select("id")
         .eq("slug", filters.category)
         .maybeSingle();
-      if (cat) query = query.eq("category_id", cat.id);
+      if (cat) filter = filter.eq("category_id", cat.id);
     }
     if (filters.availability === "in_stock") {
-      query = query.gt("stock", 0);
+      filter = filter.gt("stock", 0);
     }
 
-    switch (filters.sort) {
-      case "precio_asc":
-        query = query.order("price", { ascending: true });
-        break;
-      case "precio_desc":
-        query = query.order("price", { ascending: false });
-        break;
-      case "populares":
-        // Aproximación pública: destacados primero, luego recientes.
-        // (product_metrics solo es legible por admin vía RLS.)
-        query = query.order("is_featured", { ascending: false }).order("created_at", { ascending: false });
-        break;
-      default:
-        query = query.order("created_at", { ascending: false });
-    }
+    // Orden + paginación: .order()/.range() devuelven TransformBuilder, así que
+    // se encadenan en una sola expresión (no se reasignan a `filter`).
+    const ordered =
+      filters.sort === "precio_asc"
+        ? filter.order("price", { ascending: true })
+        : filters.sort === "precio_desc"
+          ? filter.order("price", { ascending: false })
+          : filters.sort === "populares"
+            ? // Aproximación pública: destacados primero, luego recientes.
+              // (product_metrics solo es legible por admin vía RLS.)
+              filter.order("is_featured", { ascending: false }).order("created_at", { ascending: false })
+            : filter.order("created_at", { ascending: false });
 
-    query = query.range(from, from + PAGE_SIZE - 1);
-
-    const { data, error, count } = await query;
+    const { data, error, count } = await ordered.range(from, from + PAGE_SIZE - 1);
     if (error) throw error;
     return { items: (data ?? []).map(toCard), total: count ?? 0 };
   },
