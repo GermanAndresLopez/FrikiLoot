@@ -19,6 +19,8 @@ export type NotificationType =
 
 export type CartEventType = "add" | "remove" | "update";
 
+export type OrderStatus = "pending" | "completed" | "cancelled";
+
 export interface OrderItemSnapshot {
   product_id: string;
   name: string;
@@ -150,6 +152,8 @@ export interface Database {
           customer_name: string | null;
           customer_phone: string | null;
           session_id: string | null;
+          status: OrderStatus;
+          stock_applied: boolean;
           created_at: string;
         };
         Insert: {
@@ -159,6 +163,8 @@ export interface Database {
           customer_name?: string | null;
           customer_phone?: string | null;
           session_id?: string | null;
+          status?: OrderStatus;
+          stock_applied?: boolean;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["whatsapp_orders"]["Insert"]>;

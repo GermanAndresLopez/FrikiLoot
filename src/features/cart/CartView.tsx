@@ -10,6 +10,8 @@ import { checkoutAction } from "@/actions/orders";
 import { logCartEventAction } from "@/actions/metrics";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
+import { EmojiBurst } from "@/components/EmojiBurst";
+import { playPop, playRemove, playCelebrate } from "@/lib/sound";
 
 export function CartView() {
   const [mounted, setMounted] = useState(false);
@@ -23,8 +25,19 @@ export function CartView() {
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [burst, setBurst] = useState(0);
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  function changeQty(productId: string, size: string | null, qty: number) {
+    setQuantity(productId, size, qty);
+    playPop();
+  }
+  function remove(productId: string, size: string | null) {
+    removeItem(productId, size);
+    playRemove();
+  }
 
   if (!mounted) return <p className="py-10 text-center text-muted">Cargando…</p>;
 
@@ -71,8 +84,15 @@ export function CartView() {
       items.forEach((i) =>
         void logCartEventAction({ productId: i.productId, size: i.size, quantity: i.quantity, eventType: "update", sessionId: sid })
       );
-      clear();
-      window.location.href = res.url;
+      // Celebración: burst + chime, y luego abrimos WhatsApp.
+      setConfirmed(true);
+      setBurst((b) => b + 1);
+      playCelebrate();
+      const url = res.url;
+      setTimeout(() => {
+        clear();
+        window.location.href = url;
+      }, 1100);
     }
   }
 
@@ -105,7 +125,7 @@ export function CartView() {
                     size="sm"
                     variant="secondary"
                     disabled={item.quantity <= 1}
-                    onClick={() => setQuantity(item.productId, item.size, item.quantity - 1)}
+                    onClick={() => changeQty(item.productId, item.size, item.quantity - 1)}
                   >
                     −
                   </Button>
@@ -114,13 +134,13 @@ export function CartView() {
                     size="sm"
                     variant="secondary"
                     disabled={item.quantity >= item.maxStock}
-                    onClick={() => setQuantity(item.productId, item.size, item.quantity + 1)}
+                    onClick={() => changeQty(item.productId, item.size, item.quantity + 1)}
                   >
                     +
                   </Button>
                 </div>
                 <button
-                  onClick={() => removeItem(item.productId, item.size)}
+                  onClick={() => remove(item.productId, item.size)}
                   className="text-xs text-danger hover:underline"
                 >
                   Eliminar
@@ -160,11 +180,16 @@ export function CartView() {
           />
         </Field>
         {errors._ && <p className="text-sm text-danger">{errors._}</p>}
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Procesando…" : "Finalizar pedido por WhatsApp"}
-        </Button>
+        <div className="relative">
+          <EmojiBurst trigger={burst} big />
+          <Button type="submit" className="w-full" disabled={loading || confirmed}>
+            {confirmed ? "✓ ¡Pedido listo!" : loading ? "Procesando…" : "Finalizar pedido por WhatsApp"}
+          </Button>
+        </div>
         <p className="text-center text-xs text-muted">
-          Te llevaremos a WhatsApp con el pedido listo para enviar.
+          {confirmed
+            ? "Abriendo WhatsApp con tu pedido…"
+            : "Te llevaremos a WhatsApp con el pedido listo para enviar."}
         </p>
       </form>
     </div>

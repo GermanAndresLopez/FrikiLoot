@@ -28,7 +28,8 @@ export function AdminNav({ email }: { email: string }) {
       {/* ───────── Sidebar desktop ───────── */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-surface/70 p-4 backdrop-blur-xl md:flex">
         <Link
-          href="/admin"
+          href="/"
+          aria-label="Ir a la tienda"
           className="mb-8 flex items-center gap-2.5 rounded-xl px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <Image src="/logo.jpg" alt="" width={32} height={32} className="h-8 w-8 rounded-lg bg-white" />
@@ -82,7 +83,7 @@ export function AdminNav({ email }: { email: string }) {
 
       {/* ───────── Top bar móvil ───────── */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface/85 px-4 py-3 backdrop-blur-xl md:hidden">
-        <Link href="/admin" className="flex items-center gap-2">
+        <Link href="/" aria-label="Ir a la tienda" className="flex items-center gap-2">
           <Image src="/logo.jpg" alt="" width={26} height={26} className="h-[26px] w-[26px] rounded-md bg-white" />
           <span className="text-base font-extrabold text-brand-gradient">{env.storeName}</span>
         </Link>

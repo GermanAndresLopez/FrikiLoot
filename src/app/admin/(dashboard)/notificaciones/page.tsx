@@ -2,9 +2,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { notificationRepository } from "@/repositories/notificationRepository";
 import { adminProductRepository } from "@/repositories/adminProductRepository";
+import { orderRepository } from "@/repositories/orderRepository";
 import { formatRelative } from "@/lib/format";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { OrderCard } from "@/features/admin/OrderCard";
 import { markNotificationReadAction, markAllReadAction } from "@/actions/notifications";
 import type { NotificationType } from "@/types/database";
 
@@ -28,13 +30,15 @@ const labelByType: Record<NotificationType, string> = {
 
 export default async function AlertasPage() {
   const db = await createClient();
-  const [notifications, inventory] = await Promise.all([
+  const [notifications, inventory, orders] = await Promise.all([
     notificationRepository.list(db),
     adminProductRepository.listInventory(db),
+    orderRepository.listRecent(db, 20),
   ]);
 
   const outOfStock = inventory.filter((i) => i.stock === 0);
   const lowStock = inventory.filter((i) => i.stock > 0 && i.stock <= i.low_stock_threshold);
+  const pendingOrders = orders.filter((o) => o.status === "pending").length;
   const hasUnread = notifications.some((n) => !n.is_read);
 
   return (
@@ -63,6 +67,25 @@ export default async function AlertasPage() {
             }))}
           />
         </div>
+      </section>
+
+      {/* ───────── Pedidos por WhatsApp ───────── */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Pedidos</h2>
+          {pendingOrders > 0 && <Badge tone="warning">{pendingOrders} por confirmar</Badge>}
+        </div>
+        {orders.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted">
+            Aún no hay pedidos.
+          </p>
+        ) : (
+          <ul className="space-y-2.5">
+            {orders.map((o) => (
+              <OrderCard key={o.id} order={o} />
+            ))}
+          </ul>
+        )}
       </section>
 
       {/* ───────── Notificaciones ───────── */}
