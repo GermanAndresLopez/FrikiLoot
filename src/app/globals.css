@@ -35,11 +35,39 @@ html {
 }
 
 body {
+  /* Fondo premium: base oscura con halos de marca muy sutiles */
   background-color: var(--color-bg);
+  background-image:
+    radial-gradient(60rem 60rem at 110% -10%, rgba(168, 85, 247, 0.08), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 0%, rgba(255, 61, 127, 0.08), transparent 55%);
+  background-attachment: fixed;
   color: var(--color-foreground);
   font-family: var(--font-sans);
-  /* Padding inferior para no chocar con la BottomNav en móvil */
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Accesibilidad: foco visible consistente ──────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+/* Componentes que ya pintan su propio anillo no necesitan el outline global */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+}
+
+/* Respeta a quien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Scrollbar sutil */
@@ -50,6 +78,9 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
   border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
 }
 
 /* Utilidad: gradiente de marca */

@@ -20,7 +20,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Panel</p>
+        <h1 className="text-2xl font-bold sm:text-3xl">Dashboard</h1>
+        <p className="mt-1 text-sm text-muted">Resumen de tu tienda en tiempo real.</p>
+      </header>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard label="Productos" value={summary.totalProducts} />
