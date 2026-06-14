@@ -59,6 +59,43 @@ export async function checkoutAction(raw: unknown): Promise<CheckoutResult> {
 }
 
 /**
+ * Edita los ítems de un pedido PENDIENTE (ajustar cantidades, quitar o agregar
+ * productos) y recalcula el total. No aplica a pedidos ya confirmados.
+ */
+export async function updateOrderItemsAction(
+  orderId: string,
+  items: OrderItemSnapshot[]
+): Promise<{ error?: string }> {
+  const { supabase } = await requireAdmin();
+
+  const clean: OrderItemSnapshot[] = items
+    .filter((i) => i.quantity > 0)
+    .map((i) => ({
+      product_id: i.product_id,
+      name: i.name,
+      size: i.size ?? null,
+      quantity: Math.max(1, Math.round(i.quantity)),
+      unit_price: Math.max(0, Math.round(i.unit_price)),
+    }));
+
+  if (clean.length === 0) {
+    return { error: "El pedido debe tener al menos un producto. Si no, márcalo como no realizada." };
+  }
+
+  const total = clean.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
+
+  const { error } = await supabase
+    .from("whatsapp_orders")
+    .update({ items: clean, total })
+    .eq("id", orderId)
+    .eq("status", "pending");
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/notificaciones");
+  return {};
+}
+
+/**
  * Confirma (o cancela) un pedido desde el panel. Si se confirma, descuenta el
  * stock de cada producto una sola vez (stock_applied evita doble descuento).
  */

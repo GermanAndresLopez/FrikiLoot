@@ -30,10 +30,11 @@ const labelByType: Record<NotificationType, string> = {
 
 export default async function AlertasPage() {
   const db = await createClient();
-  const [notifications, inventory, orders] = await Promise.all([
+  const [notifications, inventory, orders, products] = await Promise.all([
     notificationRepository.list(db),
     adminProductRepository.listInventory(db),
     orderRepository.listPending(db, 50),
+    adminProductRepository.listBasic(db),
   ]);
 
   const outOfStock = inventory.filter((i) => i.stock === 0);
@@ -81,7 +82,7 @@ export default async function AlertasPage() {
         ) : (
           <ul className="space-y-2.5">
             {orders.map((o) => (
-              <OrderCard key={o.id} order={o} />
+              <OrderCard key={o.id} order={o} products={products} />
             ))}
           </ul>
         )}

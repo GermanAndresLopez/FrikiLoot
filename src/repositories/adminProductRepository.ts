@@ -12,6 +12,17 @@ export interface AdminProductRow extends Product {
 }
 
 export const adminProductRepository = {
+  /** Listado mínimo (id, nombre, precio) para selectores. */
+  async listBasic(db: DB): Promise<{ id: string; name: string; price: number }[]> {
+    const { data, error } = await db
+      .from("products")
+      .select("id, name, price")
+      .eq("is_active", true)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  },
+
   async list(db: DB): Promise<AdminProductRow[]> {
     const { data, error } = await db
       .from("products")
