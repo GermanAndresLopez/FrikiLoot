@@ -5,6 +5,7 @@ import { checkoutSchema } from "@/validations/order";
 import { metricsService } from "@/services/metricsService";
 import { buildWhatsappMessage, buildWhatsappUrl } from "@/services/whatsapp";
 import { requireAdmin } from "@/services/authService";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { adminProductRepository } from "@/repositories/adminProductRepository";
 import type { OrderItemSnapshot } from "@/types/database";
 
@@ -66,7 +67,9 @@ export async function updateOrderItemsAction(
   orderId: string,
   items: OrderItemSnapshot[]
 ): Promise<{ error?: string }> {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  // Service-role: las escrituras en whatsapp_orders no tienen política RLS.
+  const db = createAdminClient();
 
   const clean: OrderItemSnapshot[] = items
     .filter((i) => i.quantity > 0)
@@ -84,7 +87,7 @@ export async function updateOrderItemsAction(
 
   const total = clean.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
 
-  const { error } = await supabase
+  const { error } = await db
     .from("whatsapp_orders")
     .update({ items: clean, total })
     .eq("id", orderId)
@@ -98,40 +101,52 @@ export async function updateOrderItemsAction(
 /**
  * Confirma (o cancela) un pedido desde el panel. Si se confirma, descuenta el
  * stock de cada producto una sola vez (stock_applied evita doble descuento).
+ * Usa service-role porque whatsapp_orders no tiene política RLS de escritura.
  */
-export async function fulfillOrderAction(orderId: string, completed: boolean): Promise<void> {
-  const { supabase } = await requireAdmin();
+export async function fulfillOrderAction(
+  orderId: string,
+  completed: boolean
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  const db = createAdminClient();
 
-  const { data: order } = await supabase
+  const { data: order, error: readErr } = await db
     .from("whatsapp_orders")
     .select("items, stock_applied")
     .eq("id", orderId)
     .maybeSingle();
-  if (!order) return;
+  if (readErr) return { error: readErr.message };
+  if (!order) return { error: "Pedido no encontrado." };
 
   if (completed) {
     if (!order.stock_applied) {
       for (const it of order.items as OrderItemSnapshot[]) {
         try {
           if (it.size) {
-            await adminProductRepository.adjustSizeStock(supabase, it.product_id, it.size, -it.quantity);
+            await adminProductRepository.adjustSizeStock(db, it.product_id, it.size, -it.quantity);
           } else {
-            await adminProductRepository.adjustStock(supabase, it.product_id, -it.quantity);
+            await adminProductRepository.adjustStock(db, it.product_id, -it.quantity);
           }
         } catch (e) {
           console.error("[fulfill] descuento de stock", e);
         }
       }
     }
-    await supabase
+    const { error } = await db
       .from("whatsapp_orders")
       .update({ status: "completed", stock_applied: true })
       .eq("id", orderId);
+    if (error) return { error: error.message };
   } else {
-    await supabase.from("whatsapp_orders").update({ status: "cancelled" }).eq("id", orderId);
+    const { error } = await db
+      .from("whatsapp_orders")
+      .update({ status: "cancelled" })
+      .eq("id", orderId);
+    if (error) return { error: error.message };
   }
 
   revalidatePath("/admin/notificaciones");
   revalidatePath("/admin/inventario");
   revalidatePath("/admin");
+  return {};
 }

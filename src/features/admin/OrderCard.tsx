@@ -22,7 +22,11 @@ export function OrderCard({ order, products }: { order: OrderRow; products: Basi
 
   function resolve(completed: boolean) {
     startTransition(async () => {
-      await fulfillOrderAction(order.id, completed);
+      const res = await fulfillOrderAction(order.id, completed);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
       toast.success(
         completed ? "Compra confirmada · stock descontado" : "Pedido marcado como no realizado"
       );
