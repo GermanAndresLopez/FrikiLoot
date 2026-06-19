@@ -25,6 +25,13 @@ export const newsRepository = {
     return data ?? [];
   },
 
+  /** Una publicación por id (RLS limita a activas/vigentes para el público). */
+  async getById(db: DB, id: string): Promise<News | null> {
+    const { data, error } = await db.from("news").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
   async listAll(db: DB): Promise<News[]> {
     const { data, error } = await db
       .from("news")

@@ -36,6 +36,38 @@ export const THEME_TOKENS: { key: keyof Omit<Theme, "mode">; label: string; cssV
   { key: "danger", label: "Peligro", cssVar: "--color-danger" },
 ];
 
+/** Agrupación de tokens por propósito, para un editor más entendible. */
+export const THEME_GROUPS: {
+  title: string;
+  hint: string;
+  keys: (keyof Omit<Theme, "mode">)[];
+}[] = [
+  {
+    title: "Colores de marca",
+    hint: "Botones, precios y acentos. Lo que más se nota.",
+    keys: ["primary", "primaryHover", "accent", "accent2"],
+  },
+  {
+    title: "Fondo y superficies",
+    hint: "Fondo de la página, tarjetas y bordes.",
+    keys: ["bg", "surface", "surface2", "border"],
+  },
+  {
+    title: "Texto",
+    hint: "Texto principal y secundario.",
+    keys: ["foreground", "muted"],
+  },
+  {
+    title: "Estados",
+    hint: "Éxito, advertencias y errores.",
+    keys: ["success", "warning", "danger"],
+  },
+];
+
+export const TOKEN_LABELS: Record<keyof Omit<Theme, "mode">, string> = Object.fromEntries(
+  THEME_TOKENS.map((t) => [t.key, t.label])
+) as Record<keyof Omit<Theme, "mode">, string>;
+
 /** Preset oscuro de marca (el original). También es el fallback. */
 export const DEFAULT_THEME: Theme = {
   mode: "dark",
