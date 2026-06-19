@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { env } from "@/lib/env";
 import { Analytics } from "@/components/Analytics";
 import { Toaster } from "@/components/Toaster";
+import { getTheme } from "@/services/themeService";
+import { themeToCss } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -30,17 +32,24 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#0a0a0f",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = await getTheme();
+  return {
+    themeColor: theme.bg,
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getTheme();
+
   return (
     <html lang="es" className={inter.variable}>
       <body className="min-h-dvh antialiased">
+        {/* Tema global definido por el admin. Sobreescribe las variables base. */}
+        <style id="theme-vars" dangerouslySetInnerHTML={{ __html: themeToCss(theme) }} />
         {children}
         <Toaster />
         <Analytics />

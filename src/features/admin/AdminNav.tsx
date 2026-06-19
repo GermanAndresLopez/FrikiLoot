@@ -16,6 +16,7 @@ const links = [
   { href: "/admin/productos", label: "Productos", icon: BoxIcon },
   { href: "/admin/inventario", label: "Inventario", icon: StackIcon },
   { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
+  { href: "/admin/apariencia", label: "Tema", icon: PaletteIcon },
 ];
 
 export function AdminNav({ email }: { email: string }) {
@@ -180,6 +181,17 @@ function BellIcon(p: IconProps) {
     <svg {...base(p)}>
       <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    </svg>
+  );
+}
+function PaletteIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.5 0-1 .8-1.5 1.5-1.5h1.5A3.5 3.5 0 0 0 20 14a8 8 0 0 0-8-11Z" />
+      <circle cx="7.5" cy="11" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="10" cy="7" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="14" cy="7" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="16.5" cy="11" r="1.1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
