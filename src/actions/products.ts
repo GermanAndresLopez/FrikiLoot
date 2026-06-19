@@ -123,10 +123,69 @@ export async function uploadProductImageAction(formData: FormData): Promise<{ er
   return {};
 }
 
+/** Sube VARIAS imágenes a la vez. La primera del producto queda como principal. */
+export async function uploadProductImagesAction(
+  formData: FormData
+): Promise<{ error?: string; uploaded?: number }> {
+  const { supabase } = await requireAdmin();
+  const productId = String(formData.get("product_id"));
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+
+  if (files.length === 0) return { error: "Selecciona al menos una imagen." };
+
+  // Posición inicial = cantidad de imágenes existentes.
+  const { count } = await supabase
+    .from("product_images")
+    .select("id", { count: "exact", head: true })
+    .eq("product_id", productId);
+  let position = count ?? 0;
+  let uploaded = 0;
+  const errors: string[] = [];
+
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) {
+      errors.push(`${file.name}: no es una imagen.`);
+      continue;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      errors.push(`${file.name}: supera 5 MB.`);
+      continue;
+    }
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${productId}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+      cacheControl: "31536000",
+      upsert: false,
+    });
+    if (upErr) {
+      errors.push(`${file.name}: ${upErr.message}`);
+      continue;
+    }
+    const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    await adminProductRepository.addImage(supabase, productId, pub.publicUrl, position, position === 0);
+    position += 1;
+    uploaded += 1;
+  }
+
+  revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/admin/productos");
+  if (uploaded === 0) return { error: errors[0] ?? "No se pudo subir." };
+  return { uploaded, error: errors.length ? `${errors.length} archivo(s) omitido(s).` : undefined };
+}
+
 export async function deleteProductImageAction(formData: FormData): Promise<void> {
   const { supabase } = await requireAdmin();
   const imageId = String(formData.get("image_id"));
   const productId = String(formData.get("product_id"));
   await adminProductRepository.removeImage(supabase, imageId);
   revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/admin/productos");
+}
+
+/** Marca una imagen como principal. */
+export async function setPrimaryImageAction(productId: string, imageId: string): Promise<void> {
+  const { supabase } = await requireAdmin();
+  await adminProductRepository.setPrimaryImage(supabase, productId, imageId);
+  revalidatePath(`/admin/productos/${productId}`);
+  revalidatePath("/admin/productos");
 }

@@ -124,6 +124,13 @@ export const adminProductRepository = {
     if (error) throw error;
   },
 
+  /** Marca una imagen como principal y desmarca las demás del producto. */
+  async setPrimaryImage(db: DB, productId: string, imageId: string): Promise<void> {
+    await db.from("product_images").update({ is_primary: false }).eq("product_id", productId);
+    const { error } = await db.from("product_images").update({ is_primary: true }).eq("id", imageId);
+    if (error) throw error;
+  },
+
   /** Ajusta stock de un producto sin tallas (delta puede ser negativo). */
   async adjustStock(db: DB, productId: string, delta: number): Promise<number> {
     const { data: prod, error: readErr } = await db
