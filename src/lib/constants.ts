@@ -18,6 +18,7 @@ export const AVAILABILITY_OPTIONS = [
 ] as const;
 
 export const STORAGE_BUCKET = "product-images";
+export const NEWS_BUCKET = "news-images";
 
 export const CART_STORAGE_KEY = "frikiloot-cart";
 export const SESSION_STORAGE_KEY = "frikiloot-session-id";

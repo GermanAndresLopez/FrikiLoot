@@ -16,6 +16,7 @@ const links = [
   { href: "/admin/productos", label: "Productos", icon: BoxIcon },
   { href: "/admin/inventario", label: "Inventario", icon: StackIcon },
   { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
+  { href: "/admin/noticias", label: "Noticias", icon: NewspaperIcon },
   { href: "/admin/apariencia", label: "Tema", icon: PaletteIcon },
 ];
 
@@ -104,10 +105,10 @@ export function AdminNav({ email }: { email: string }) {
         </div>
       </header>
 
-      {/* ───────── Bottom bar móvil ───────── */}
+      {/* ───────── Bottom bar móvil (desplazable) ───────── */}
       <nav
         aria-label="Navegación del panel"
-        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+        className="no-scrollbar fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-border bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
       >
         {links.map(({ href, label, exact, icon: Icon }) => {
           const active = isActive(href, exact);
@@ -117,7 +118,7 @@ export function AdminNav({ email }: { email: string }) {
               href={href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
+                "relative flex min-w-[4.25rem] flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
                 active ? "text-primary" : "text-muted"
               )}
             >
@@ -181,6 +182,14 @@ function BellIcon(p: IconProps) {
     <svg {...base(p)}>
       <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    </svg>
+  );
+}
+function NewspaperIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <path d="M4 4h13v15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5" />
+      <path d="M17 8h3v11a2 2 0 0 1-2 2M7 8h6M7 12h6M7 16h4" />
     </svg>
   );
 }

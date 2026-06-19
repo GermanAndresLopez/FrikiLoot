@@ -204,6 +204,28 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
         Relationships: [];
       };
+      news: {
+        Row: {
+          id: string;
+          title: string | null;
+          description: string | null;
+          image_url: string | null;
+          is_active: boolean;
+          ends_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title?: string | null;
+          description?: string | null;
+          image_url?: string | null;
+          is_active?: boolean;
+          ends_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["news"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       product_metrics: {

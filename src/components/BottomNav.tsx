@@ -9,6 +9,7 @@ import { useCartCount } from "@/store/cartStore";
 const items = [
   { href: "/", label: "Inicio", icon: HomeIcon },
   { href: "/productos", label: "Catálogo", icon: GridIcon },
+  { href: "/noticias", label: "Noticias", icon: NewsIcon },
   { href: "/carrito", label: "Carrito", icon: CartIcon, badge: true },
 ];
 
@@ -85,6 +86,15 @@ function CartIcon(props: React.SVGProps<SVGSVGElement>) {
       />
       <circle cx="9" cy="20" r="1.4" />
       <circle cx="18" cy="20" r="1.4" />
+    </svg>
+  );
+}
+
+function NewsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} {...props}>
+      <path d="M4 4h13v15a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M17 8h3v11a2 2 0 0 1-2 2M7 8h6M7 12h6M7 16h4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

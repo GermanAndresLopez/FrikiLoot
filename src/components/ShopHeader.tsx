@@ -42,6 +42,16 @@ export function ShopHeader() {
           </span>
         </Link>
 
+        {/* Enlaces de escritorio (en móvil está la BottomNav) */}
+        <nav className="hidden shrink-0 items-center gap-1 md:flex">
+          <Link href="/productos" className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground">
+            Catálogo
+          </Link>
+          <Link href="/noticias" className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground">
+            Noticias
+          </Link>
+        </nav>
+
         <form onSubmit={onSearch} className="flex-1">
           <input
             value={q}

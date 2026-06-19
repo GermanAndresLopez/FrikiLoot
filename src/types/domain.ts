@@ -6,6 +6,7 @@ export type ProductSize = Database["public"]["Tables"]["product_sizes"]["Row"];
 export type ProductImage = Database["public"]["Tables"]["product_images"]["Row"];
 export type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 export type WhatsappOrder = Database["public"]["Tables"]["whatsapp_orders"]["Row"];
+export type News = Database["public"]["Tables"]["news"]["Row"];
 
 export type ProductMetric = Database["public"]["Views"]["product_metrics"]["Row"];
 export type DailyTraffic = Database["public"]["Views"]["daily_traffic"]["Row"];
