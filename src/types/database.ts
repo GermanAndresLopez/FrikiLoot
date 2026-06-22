@@ -199,8 +199,18 @@ export interface Database {
         Relationships: [];
       };
       app_settings: {
-        Row: { id: number; theme: Record<string, unknown>; updated_at: string };
-        Insert: { id?: number; theme?: Record<string, unknown>; updated_at?: string };
+        Row: {
+          id: number;
+          theme: Record<string, unknown>;
+          hero: Record<string, unknown>;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          theme?: Record<string, unknown>;
+          hero?: Record<string, unknown>;
+          updated_at?: string;
+        };
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
         Relationships: [];
       };
