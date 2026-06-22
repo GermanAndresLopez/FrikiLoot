@@ -3,13 +3,15 @@
 export interface HeroConfig {
   title: string;
   subtitle: string;
-  titleGradient: boolean; // título con gradiente de marca
-  titleColor: string; // usado si !titleGradient
+  titleGradient: boolean;
+  titleColor: string;
   subtitleColor: string;
-  images: string[]; // 0..6 imágenes; vacío = muestra el logo
+  backgroundImage: string;
+  backgroundOpacity: number;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 export const DEFAULT_HERO: HeroConfig = {
   title: "Tu universo anime en un solo lugar",
@@ -17,11 +19,18 @@ export const DEFAULT_HERO: HeroConfig = {
   titleGradient: false,
   titleColor: "#ededf2",
   subtitleColor: "#9a9ab0",
-  images: [],
+  backgroundImage: "",
+  backgroundOpacity: 0.35,
 };
 
 export function normalizeHero(raw: unknown): HeroConfig {
   const d = (raw ?? {}) as Partial<HeroConfig>;
+
+  // Migrate old `images` array → first image as backgroundImage
+  const legacyImages = (d as Record<string, unknown>).images;
+  const fallbackBg =
+    Array.isArray(legacyImages) && typeof legacyImages[0] === "string" ? legacyImages[0] : "";
+
   return {
     title: typeof d.title === "string" ? d.title : DEFAULT_HERO.title,
     subtitle: typeof d.subtitle === "string" ? d.subtitle : DEFAULT_HERO.subtitle,
@@ -29,6 +38,7 @@ export function normalizeHero(raw: unknown): HeroConfig {
     titleColor: typeof d.titleColor === "string" && HEX.test(d.titleColor) ? d.titleColor : DEFAULT_HERO.titleColor,
     subtitleColor:
       typeof d.subtitleColor === "string" && HEX.test(d.subtitleColor) ? d.subtitleColor : DEFAULT_HERO.subtitleColor,
-    images: Array.isArray(d.images) ? d.images.filter((x): x is string => typeof x === "string").slice(0, 6) : [],
+    backgroundImage: typeof d.backgroundImage === "string" ? d.backgroundImage : fallbackBg,
+    backgroundOpacity: typeof d.backgroundOpacity === "number" ? clamp01(d.backgroundOpacity) : DEFAULT_HERO.backgroundOpacity,
   };
 }

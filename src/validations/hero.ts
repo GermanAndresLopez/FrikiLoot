@@ -8,7 +8,8 @@ export const heroSchema = z.object({
   titleGradient: z.boolean(),
   titleColor: hex,
   subtitleColor: hex,
-  images: z.array(z.string().url()).max(6),
+  backgroundImage: z.string().max(500),
+  backgroundOpacity: z.number().min(0).max(1),
 });
 
 export type HeroInput = z.infer<typeof heroSchema>;

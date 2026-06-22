@@ -3,40 +3,38 @@ import Image from "next/image";
 import { env } from "@/lib/env";
 import type { HeroConfig } from "@/lib/hero";
 
-/**
- * Zona "hero" del inicio, editable por el admin.
- * Sin "use client": se usa en la home (servidor) y en la vista previa (cliente).
- * En modo `preview` los botones no navegan.
- */
 export function HeroView({ config, preview = false }: { config: HeroConfig; preview?: boolean }) {
-  const hasImages = config.images.length > 0;
+  const hasBg = config.backgroundImage.length > 0;
 
   return (
     <div className="relative overflow-hidden rounded-[1.75rem] border border-border/60">
-      {/* Glows de fondo */}
+      {/* Imagen de fondo (banner) */}
+      {hasBg && (
+        <Image
+          src={config.backgroundImage}
+          alt=""
+          fill
+          sizes="100vw"
+          priority={!preview}
+          className="object-cover"
+          style={{ opacity: config.backgroundOpacity }}
+        />
+      )}
+
+      {/* Glows decorativos */}
       <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-accent-2/30 blur-3xl" />
 
       <div className="relative flex flex-col items-center gap-5 bg-surface/40 px-6 py-12 text-center backdrop-blur-sm sm:py-16">
-        {/* Imágenes (o logo por defecto) */}
-        {hasImages ? (
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {config.images.map((src, i) => (
-              <div key={i} className="relative h-20 w-20 overflow-hidden rounded-2xl bg-white/5 shadow-lg sm:h-24 sm:w-24">
-                <Image src={src} alt="" fill sizes="96px" className="object-cover" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Image
-            src="/logo.jpg"
-            alt={env.storeName}
-            width={72}
-            height={72}
-            priority={!preview}
-            className="h-[72px] w-[72px] rounded-2xl bg-white shadow-xl shadow-primary/20"
-          />
-        )}
+        {/* Logo */}
+        <Image
+          src="/logo.jpg"
+          alt={env.storeName}
+          width={72}
+          height={72}
+          priority={!preview}
+          className="h-[72px] w-[72px] rounded-2xl bg-white shadow-xl shadow-primary/20"
+        />
 
         <div>
           {config.title && (
