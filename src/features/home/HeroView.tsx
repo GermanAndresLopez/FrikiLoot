@@ -25,7 +25,10 @@ export function HeroView({ config, preview = false }: { config: HeroConfig; prev
       <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-accent-2/30 blur-3xl" />
 
-      <div className="relative flex flex-col items-center gap-5 bg-surface/40 px-6 py-12 text-center backdrop-blur-sm sm:py-16">
+      <div
+        className="relative flex flex-col items-center gap-5 bg-surface/40 px-6 py-12 text-center sm:py-16"
+        style={{ backdropFilter: `blur(${config.backgroundBlur}px)` }}
+      >
         {/* Logo */}
         <Image
           src="/logo.jpg"

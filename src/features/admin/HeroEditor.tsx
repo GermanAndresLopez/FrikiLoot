@@ -121,6 +121,32 @@ export function HeroEditor({ initial }: { initial: HeroConfig }) {
             <span>100%</span>
           </div>
         </div>
+
+        {/* Desenfoque */}
+        <div className="rounded-xl border border-border bg-surface p-4">
+          <div className="flex items-center justify-between">
+            <label htmlFor="bg-blur" className="text-sm font-medium">Desenfoque del fondo</label>
+            <span className="rounded-lg bg-surface-2 px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums">
+              {hero.backgroundBlur}px
+            </span>
+          </div>
+          <p className="mb-3 text-xs text-muted">0 = nítido, 20 = muy borroso</p>
+          <input
+            id="bg-blur"
+            type="range"
+            min={0}
+            max={20}
+            step={1}
+            value={hero.backgroundBlur}
+            onChange={(e) => set("backgroundBlur", Number(e.target.value))}
+            className="w-full accent-primary"
+          />
+          <div className="mt-1 flex justify-between text-[10px] text-muted">
+            <span>0</span>
+            <span>10</span>
+            <span>20</span>
+          </div>
+        </div>
       </section>
 
       {/* Textos */}

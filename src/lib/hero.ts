@@ -8,10 +8,11 @@ export interface HeroConfig {
   subtitleColor: string;
   backgroundImage: string;
   backgroundOpacity: number;
+  backgroundBlur: number;
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
 export const DEFAULT_HERO: HeroConfig = {
   title: "Tu universo anime en un solo lugar",
@@ -21,6 +22,7 @@ export const DEFAULT_HERO: HeroConfig = {
   subtitleColor: "#9a9ab0",
   backgroundImage: "",
   backgroundOpacity: 0.35,
+  backgroundBlur: 2,
 };
 
 export function normalizeHero(raw: unknown): HeroConfig {
@@ -39,6 +41,7 @@ export function normalizeHero(raw: unknown): HeroConfig {
     subtitleColor:
       typeof d.subtitleColor === "string" && HEX.test(d.subtitleColor) ? d.subtitleColor : DEFAULT_HERO.subtitleColor,
     backgroundImage: typeof d.backgroundImage === "string" ? d.backgroundImage : fallbackBg,
-    backgroundOpacity: typeof d.backgroundOpacity === "number" ? clamp01(d.backgroundOpacity) : DEFAULT_HERO.backgroundOpacity,
+    backgroundOpacity: typeof d.backgroundOpacity === "number" ? clamp(d.backgroundOpacity, 0, 1) : DEFAULT_HERO.backgroundOpacity,
+    backgroundBlur: typeof d.backgroundBlur === "number" ? clamp(d.backgroundBlur, 0, 20) : DEFAULT_HERO.backgroundBlur,
   };
 }
