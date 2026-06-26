@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { categoryRepository } from "@/repositories/categoryRepository";
 import { adminProductRepository } from "@/repositories/adminProductRepository";
@@ -9,11 +10,12 @@ export const dynamic = "force-dynamic";
 
 export default async function EditarProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const db = await createClient();
+  const db = createAdminClient();
+  const userDb = await createClient();
 
   const [product, categories] = await Promise.all([
     adminProductRepository.getById(db, id),
-    categoryRepository.listAll(db),
+    categoryRepository.listAll(userDb),
   ]);
   if (!product) notFound();
 

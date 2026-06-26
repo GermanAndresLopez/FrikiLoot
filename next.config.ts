@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
       : [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }],
   },
+  serverActions: {
+    bodySizeLimit: "10mb",
+  },
   experimental: {
     optimizePackageImports: ["framer-motion"],
   },

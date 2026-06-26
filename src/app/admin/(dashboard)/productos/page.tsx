@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { adminProductRepository } from "@/repositories/adminProductRepository";
 import { Button } from "@/components/ui/Button";
 import { ProductRow } from "@/features/admin/ProductRow";
@@ -7,7 +7,7 @@ import { ProductRow } from "@/features/admin/ProductRow";
 export const dynamic = "force-dynamic";
 
 export default async function ProductosPage() {
-  const db = await createClient();
+  const db = createAdminClient();
   const products = await adminProductRepository.list(db);
 
   return (
