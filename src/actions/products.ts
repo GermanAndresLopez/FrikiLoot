@@ -33,31 +33,31 @@ export async function saveProductAction(
   _prev: ProductActionState,
   formData: FormData
 ): Promise<ProductActionState> {
-  const { supabase } = await requireAdmin();
-  const id = formData.get("id") ? String(formData.get("id")) : null;
-  const name = String(formData.get("name") ?? "");
-
-  const candidate: ProductInput = {
-    name,
-    slug: String(formData.get("slug") || slugify(name)),
-    description: String(formData.get("description") ?? ""),
-    category_id: (formData.get("category_id") as string) || null,
-    price: Number(formData.get("price") ?? 0),
-    stock: Number(formData.get("stock") ?? 0),
-    has_sizes: formData.get("has_sizes") === "on",
-    is_featured: formData.get("is_featured") === "on",
-    is_active: formData.get("is_active") === "on",
-    sizes: parseSizes(formData),
-  };
-
-  const parsed = productSchema.safeParse(candidate);
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) fieldErrors[issue.path[0] as string] = issue.message;
-    return { error: "Revisa los campos.", fieldErrors };
-  }
-
   try {
+    const { supabase } = await requireAdmin();
+    const id = formData.get("id") ? String(formData.get("id")) : null;
+    const name = String(formData.get("name") ?? "");
+
+    const candidate: ProductInput = {
+      name,
+      slug: String(formData.get("slug") || slugify(name)),
+      description: String(formData.get("description") ?? ""),
+      category_id: (formData.get("category_id") as string) || null,
+      price: Number(formData.get("price") ?? 0),
+      stock: Number(formData.get("stock") ?? 0),
+      has_sizes: formData.get("has_sizes") === "on",
+      is_featured: formData.get("is_featured") === "on",
+      is_active: formData.get("is_active") === "on",
+      sizes: parseSizes(formData),
+    };
+
+    const parsed = productSchema.safeParse(candidate);
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) fieldErrors[issue.path[0] as string] = issue.message;
+      return { error: "Revisa los campos.", fieldErrors };
+    }
+
     let productId = id;
     if (id) {
       await adminProductRepository.update(supabase, id, parsed.data);
@@ -73,26 +73,41 @@ export async function saveProductAction(
   }
 }
 
-export async function deleteProductAction(formData: FormData): Promise<void> {
-  const { supabase } = await requireAdmin();
-  await adminProductRepository.remove(supabase, String(formData.get("id")));
-  revalidatePath("/admin/productos");
-  revalidatePath("/productos");
+export async function deleteProductAction(formData: FormData): Promise<{ error?: string }> {
+  try {
+    const { supabase } = await requireAdmin();
+    await adminProductRepository.remove(supabase, String(formData.get("id")));
+    revalidatePath("/admin/productos");
+    revalidatePath("/productos");
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al eliminar." };
+  }
 }
 
 /** Alterna el estado "destacado" de un producto (toggle rápido desde la lista). */
-export async function toggleFeaturedAction(productId: string, value: boolean): Promise<void> {
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from("products").update({ is_featured: value }).eq("id", productId);
-  if (error) throw error;
-  revalidatePath("/admin/productos");
-  revalidatePath("/");
-  revalidatePath("/productos");
+export async function toggleFeaturedAction(productId: string, value: boolean): Promise<{ error?: string }> {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase.from("products").update({ is_featured: value }).eq("id", productId);
+    if (error) throw error;
+    revalidatePath("/admin/productos");
+    revalidatePath("/");
+    revalidatePath("/productos");
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al cambiar destacado." };
+  }
 }
 
 /** Sube una imagen al bucket y la asocia al producto. */
 export async function uploadProductImageAction(formData: FormData): Promise<{ error?: string }> {
-  const { supabase } = await requireAdmin();
+  let supabase;
+  try {
+    ({ supabase } = await requireAdmin());
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "No autorizado." };
+  }
   const productId = String(formData.get("product_id"));
   const file = formData.get("file") as File | null;
   const isPrimary = formData.get("is_primary") === "on";
@@ -127,7 +142,12 @@ export async function uploadProductImageAction(formData: FormData): Promise<{ er
 export async function uploadProductImagesAction(
   formData: FormData
 ): Promise<{ error?: string; uploaded?: number }> {
-  const { supabase } = await requireAdmin();
+  let supabase;
+  try {
+    ({ supabase } = await requireAdmin());
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "No autorizado." };
+  }
   const productId = String(formData.get("product_id"));
   const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
 
@@ -183,9 +203,14 @@ export async function deleteProductImageAction(formData: FormData): Promise<void
 }
 
 /** Marca una imagen como principal. */
-export async function setPrimaryImageAction(productId: string, imageId: string): Promise<void> {
-  const { supabase } = await requireAdmin();
-  await adminProductRepository.setPrimaryImage(supabase, productId, imageId);
-  revalidatePath(`/admin/productos/${productId}`);
-  revalidatePath("/admin/productos");
+export async function setPrimaryImageAction(productId: string, imageId: string): Promise<{ error?: string }> {
+  try {
+    const { supabase } = await requireAdmin();
+    await adminProductRepository.setPrimaryImage(supabase, productId, imageId);
+    revalidatePath(`/admin/productos/${productId}`);
+    revalidatePath("/admin/productos");
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al cambiar imagen principal." };
+  }
 }

@@ -28,36 +28,41 @@ export async function saveCategoryAction(
   _prev: CategoryActionState,
   formData: FormData
 ): Promise<CategoryActionState> {
-  const { supabase } = await requireAdmin();
-  const id = formData.get("id") ? String(formData.get("id")) : null;
-
-  const parsed = parse(formData);
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) fieldErrors[issue.path[0] as string] = issue.message;
-    return { error: "Revisa los campos.", fieldErrors };
-  }
-
-  const input = {
-    ...parsed.data,
-    description: parsed.data.description || undefined,
-    image_url: parsed.data.image_url || undefined,
-  };
-
   try {
+    const { supabase } = await requireAdmin();
+    const id = formData.get("id") ? String(formData.get("id")) : null;
+
+    const parsed = parse(formData);
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of parsed.error.issues) fieldErrors[issue.path[0] as string] = issue.message;
+      return { error: "Revisa los campos.", fieldErrors };
+    }
+
+    const input = {
+      ...parsed.data,
+      description: parsed.data.description || undefined,
+      image_url: parsed.data.image_url || undefined,
+    };
+
     if (id) await categoryRepository.update(supabase, id, input);
     else await categoryRepository.create(supabase, input);
+
+    revalidatePath("/admin/categorias");
+    revalidatePath("/");
+    return { success: true };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Error al guardar." };
   }
-
-  revalidatePath("/admin/categorias");
-  revalidatePath("/");
-  return { success: true };
 }
 
-export async function deleteCategoryAction(formData: FormData): Promise<void> {
-  const { supabase } = await requireAdmin();
-  await categoryRepository.remove(supabase, String(formData.get("id")));
-  revalidatePath("/admin/categorias");
+export async function deleteCategoryAction(formData: FormData): Promise<{ error?: string }> {
+  try {
+    const { supabase } = await requireAdmin();
+    await categoryRepository.remove(supabase, String(formData.get("id")));
+    revalidatePath("/admin/categorias");
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al eliminar." };
+  }
 }
