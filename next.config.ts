@@ -14,10 +14,10 @@ const nextConfig: NextConfig = {
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
       : [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }],
   },
-  serverActions: {
-    bodySizeLimit: "10mb",
-  },
   experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
     optimizePackageImports: ["framer-motion"],
   },
 };
