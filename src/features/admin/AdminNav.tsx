@@ -16,6 +16,7 @@ const links = [
   { href: "/admin/productos", label: "Productos", icon: BoxIcon },
   { href: "/admin/inventario", label: "Inventario", icon: StackIcon },
   { href: "/admin/categorias", label: "Categorías", icon: TagIcon },
+  { href: "/admin/historial", label: "Historial", icon: ClockIcon },
   { href: "/admin/noticias", label: "Noticias", icon: NewspaperIcon },
   { href: "/admin/apariencia", label: "Tema", icon: PaletteIcon },
 ];
@@ -201,6 +202,14 @@ function PaletteIcon(p: IconProps) {
       <circle cx="10" cy="7" r="1.1" fill="currentColor" stroke="none" />
       <circle cx="14" cy="7" r="1.1" fill="currentColor" stroke="none" />
       <circle cx="16.5" cy="11" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+function ClockIcon(p: IconProps) {
+  return (
+    <svg {...base(p)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
     </svg>
   );
 }

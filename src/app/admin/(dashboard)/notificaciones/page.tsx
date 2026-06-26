@@ -39,7 +39,6 @@ export default async function AlertasPage() {
 
   const outOfStock = inventory.filter((i) => i.stock === 0);
   const lowStock = inventory.filter((i) => i.stock > 0 && i.stock <= i.low_stock_threshold);
-  const hasUnread = notifications.some((n) => !n.is_read);
 
   return (
     <div className="space-y-6">
@@ -92,9 +91,9 @@ export default async function AlertasPage() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Notificaciones</h2>
-          {hasUnread && (
+          {notifications.length > 0 && (
             <form action={markAllReadAction}>
-              <Button size="sm" variant="secondary">Marcar todo leído</Button>
+              <Button size="sm" variant="secondary">Limpiar todo</Button>
             </form>
           )}
         </div>
@@ -108,9 +107,7 @@ export default async function AlertasPage() {
           {notifications.map((n) => (
             <li
               key={n.id}
-              className={`rounded-2xl border p-3 transition-colors ${
-                n.is_read ? "border-border bg-surface" : "border-primary/40 bg-surface-2"
-              }`}
+              className="rounded-2xl border border-primary/40 bg-surface-2 p-3 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -121,14 +118,12 @@ export default async function AlertasPage() {
                   {n.description && <p className="mt-0.5 text-sm text-muted">{n.description}</p>}
                   <p className="mt-1 text-xs text-muted">{formatRelative(n.created_at)}</p>
                 </div>
-                {!n.is_read && (
-                  <form action={markNotificationReadAction}>
-                    <input type="hidden" name="id" value={n.id} />
-                    <Button size="sm" variant="ghost" type="submit">
-                      Leído
-                    </Button>
-                  </form>
-                )}
+                <form action={markNotificationReadAction}>
+                  <input type="hidden" name="id" value={n.id} />
+                  <Button size="sm" variant="ghost" type="submit">
+                    Quitar
+                  </Button>
+                </form>
               </div>
             </li>
           ))}

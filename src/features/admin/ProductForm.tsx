@@ -51,7 +51,7 @@ export function ProductForm({
   useEffect(() => {
     if (state === handled.current) return;
     handled.current = state;
-    if (state.success) toast.success(editing ? "Producto actualizado" : "Producto creado");
+    if (state.success) toast.success(editing ? "Producto guardado satisfactoriamente ✓" : "Producto creado satisfactoriamente ✓");
     else if (state.error && !state.fieldErrors) toast.error(state.error);
   }, [state, editing]);
 

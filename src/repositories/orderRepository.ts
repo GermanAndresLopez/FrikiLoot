@@ -38,4 +38,16 @@ export const orderRepository = {
     if (error) throw error;
     return (data ?? []) as unknown as OrderRow[];
   },
+
+  /** Pedidos resueltos (completados + cancelados) para el historial. */
+  async listResolved(db: DB, limit = 100): Promise<OrderRow[]> {
+    const { data, error } = await db
+      .from("whatsapp_orders")
+      .select(SELECT)
+      .in("status", ["completed", "cancelled"])
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as unknown as OrderRow[];
+  },
 };

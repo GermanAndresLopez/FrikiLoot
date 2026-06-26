@@ -25,12 +25,12 @@ export const notificationRepository = {
   },
 
   async markRead(db: DB, id: string): Promise<void> {
-    const { error } = await db.from("notifications").update({ is_read: true }).eq("id", id);
+    const { error } = await db.from("notifications").delete().eq("id", id);
     if (error) throw error;
   },
 
   async markAllRead(db: DB): Promise<void> {
-    const { error } = await db.from("notifications").update({ is_read: true }).eq("is_read", false);
+    const { error } = await db.from("notifications").delete().not("id", "is", null);
     if (error) throw error;
   },
 };
