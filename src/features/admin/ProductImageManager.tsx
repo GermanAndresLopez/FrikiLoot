@@ -42,9 +42,7 @@ export function ProductImageManager({
   function onFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
-
     previews.forEach((p) => URL.revokeObjectURL(p.url));
-
     const newPreviews = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
@@ -192,7 +190,7 @@ export function ProductImageManager({
                   ✕
                 </button>
 
-                <p className="absolute bottom-0 inset-x-0 truncate bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
+                <p className="absolute inset-x-0 bottom-0 truncate bg-black/50 px-1.5 py-0.5 text-[10px] text-white">
                   {p.file.name}
                 </p>
               </li>

@@ -155,14 +155,14 @@ export async function uploadProductImagesAction(
       .from("product_images")
       .select("id", { count: "exact", head: true })
       .eq("product_id", productId);
-    const hasExisting = (count ?? 0) > 0;
     let position = count ?? 0;
     let uploaded = 0;
-    let uploadIndex = 0;
+    let fileIndex = 0;
+    let primaryImageId: string | null = null;
     const errors: string[] = [];
 
     for (const file of files) {
-      const currentUploadIndex = uploadIndex++;
+      const currentIndex = fileIndex++;
       if (!file.type.startsWith("image/")) {
         errors.push(`${file.name}: no es una imagen.`);
         continue;
@@ -182,23 +182,33 @@ export async function uploadProductImagesAction(
         continue;
       }
       const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-      const isPrimary = currentUploadIndex === primaryIndex;
-      await adminProductRepository.addImage(db, productId, pub.publicUrl, position, isPrimary || (!hasExisting && position === 0));
+      await adminProductRepository.addImage(db, productId, pub.publicUrl, position, false);
 
-      if (isPrimary && hasExisting) {
-        const { data: inserted } = await db
+      if (currentIndex === primaryIndex) {
+        const { data: row } = await db
           .from("product_images")
           .select("id")
           .eq("product_id", productId)
           .eq("url", pub.publicUrl)
           .maybeSingle();
-        if (inserted) {
-          await adminProductRepository.setPrimaryImage(db, productId, inserted.id);
-        }
+        if (row) primaryImageId = row.id;
       }
 
       position += 1;
       uploaded += 1;
+    }
+
+    if (uploaded > 0 && primaryImageId) {
+      await adminProductRepository.setPrimaryImage(db, productId, primaryImageId);
+    } else if (uploaded > 0 && (count ?? 0) === 0) {
+      const { data: first } = await db
+        .from("product_images")
+        .select("id")
+        .eq("product_id", productId)
+        .order("position", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (first) await adminProductRepository.setPrimaryImage(db, productId, first.id);
     }
 
     revalidatePath(`/admin/productos/${productId}`);
@@ -233,3 +243,4 @@ export async function setPrimaryImageAction(productId: string, imageId: string):
     return { error: e instanceof Error ? e.message : "Error al cambiar imagen principal." };
   }
 }
+
